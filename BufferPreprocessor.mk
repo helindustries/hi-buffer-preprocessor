@@ -1,3 +1,9 @@
+#  Copyright 2023 Hel Industries, all rights reserved.
+#
+#  For licensing terms, Please find the licensing terms in the closest
+#  LICENSE.txt in this repository file going up the directory tree.
+#
+
 # Since we process all buffers for inclusion into TIConstantSpan, we also assume we will only ever deal with
 # C++ sources and will not be processing any C-only buffers here. In theory, the buffers themselves could
 # be used in C files, this would however require re-definition of the defines for declaring the buffers.
