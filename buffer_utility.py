@@ -12,8 +12,8 @@ from PIL import Image
 from typing import Tuple, Any, Iterable, Optional, Callable, Union
 
 from buffer_processor.bitstream import Bitstream
-from Tools.PythonUtilities.cpp import filter_code, parse_compiler_args, CompilerArgs
-from Tools.PythonUtilities.placeholders import apply_placeholders
+from python_utilities.cpp import filter_code, parse_compiler_args, CompilerArgs
+from python_utilities.placeholders import apply_placeholders
 from buffer_processor.compress import LZSSCodec, RLECodec, CompressionRunner
 from buffer_processor.utilities import get_data_width
 
