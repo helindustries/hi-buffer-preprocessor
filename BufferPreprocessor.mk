@@ -41,6 +41,7 @@ HEADER_BUFFER_FILES := $(HEADER_BUFFER_FILES:%.h=%.Data.h)
 
 # Need to add these to the build files, so they actually get recognized as dependencies
 HEADERS += $(HEADER_BUFFER_FILES) $(CPP_BUFFER_FILES)
+$(foreach path,$(HEADER_BUFFER_FILES) $(CPP_BUFFER_FILES),$(shell grep "// <Incomplete>" $(abspath $(path)) > /dev/null && rm -f $(path)))
 
 buffers: $(CPP_BUFFER_FILES) $(HEADER_BUFFER_FILES) $(BUFFER_PROCESSOR_PATH) | silent
 	@

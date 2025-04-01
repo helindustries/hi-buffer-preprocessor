@@ -38,6 +38,7 @@ class Buffer:
     args_str: str
     source_data: Optional[Union[bytes, Image.Image, TTFont]] = None
     target_data: Optional[list[int]] = None
+    valid: bool = True
 
 def analyze_file(inputfile, **defines) -> Iterable[Buffer]:
     with open(inputfile, "r") as fd:
@@ -63,12 +64,14 @@ def analyze_file(inputfile, **defines) -> Iterable[Buffer]:
 
 # <editor-fold desc="Code Generators">
 cpp_header_file_template = """// auto-generated file
+${incomplete:no_empty_line}
 #pragma once
 
 #include <cstdint>
 
 ${cpp_namespaces}
 """
+cpp_incomplete_header = "// <Incomplete>"
 cpp_namespace_template = """namespace ${namespace}
 {
     ${cpp_buffers:keep_indent}
@@ -78,7 +81,7 @@ cpp_single_line_buffer_template = """    constexpr std::size_t ${name}_${suffix}
     constexpr ${type} ${name}_${suffix}[${name}_${suffix}Size] = {${data}};
 """
 cpp_multi_line_buffer_template = """    constexpr std::size_t ${name}_${suffix}Size = ${size};
-    constexpr ${type} ${name}_${suffix}[${name}_${suffix}Size] = 
+    constexpr ${type} ${name}_${suffix}[${name}_${suffix}Size] =
     {
         ${cpp_buffer_lines:keep_indent}
     };
@@ -123,8 +126,9 @@ def generate_namespaces(buffers: Iterable[Buffer], max_line_length: int) -> Iter
         buffers_str = "".join(generate_buffers(namespace, buffer_list, max_line_length))
         yield apply_placeholders(cpp_namespace_template, namespace=namespace, cpp_buffers=buffers_str)
 def generate_source_file(buffers: Iterable[Buffer], max_line_length: int) -> str:
-    cpp_namespaces = "".join(generate_namespaces(buffers, max_line_length))
-    return apply_placeholders(cpp_header_file_template, cpp_namespaces=cpp_namespaces)
+    cpp_namespaces: str = "".join(generate_namespaces(buffers, max_line_length))
+    incomplete: str = cpp_incomplete_header if any(not buffer.valid for buffer in buffers) else ""
+    return apply_placeholders(cpp_header_file_template, cpp_namespaces=cpp_namespaces, incomplete=incomplete)
 #</editor-fold>
 
 # <editor-fold desc="Data Sources">
@@ -174,6 +178,7 @@ def load_data(buffer: Buffer, path, *search_paths: str) -> None:
     except Exception as e:
         print(f"{e}", file=sys.stderr)
         buffer.source_data = bytes()
+        buffer.valid = False
 def load_image(buffer: Buffer, path: str, *search_paths: str) -> None:
     try:
         path = find_path(path, *search_paths)
@@ -183,6 +188,7 @@ def load_image(buffer: Buffer, path: str, *search_paths: str) -> None:
     except Exception as e:
         print(f"{e}", file=sys.stderr)
         buffer.source_data = Image.new("RGBA", (0, 0))
+        buffer.valid = False
 def load_font(buffer: Buffer, path: str, *search_paths: str) -> None:
     try:
         with open(find_path(path, *search_paths), "rb") as fd:
@@ -191,6 +197,7 @@ def load_font(buffer: Buffer, path: str, *search_paths: str) -> None:
     except Exception as e:
         print(f"{e}", file=sys.stderr)
         buffer.source_data = bytes()
+        buffer.valid = False
 # </editor-fold>
 
 # <editor-fold desc="Buffer Infrastructure">
@@ -656,6 +663,7 @@ def convert_svf_stream(buffer: Buffer, path, *search_paths: str) -> None:
                         raise Exception(f"{path}:{i}: Error: JTAG command {cmd_match.group('cmd')} has an incomplete argument.")
     except Exception as e:
         print(f"{e}", file=sys.stderr)
+        buffer.valid = False
     buffer.source_data = data
 def load_jtag(buffer: Buffer, input_type: str, path: str, *search_paths: str) -> None:
     input_type = input_type.lower()
