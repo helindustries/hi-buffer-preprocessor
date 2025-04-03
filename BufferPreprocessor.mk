@@ -57,9 +57,9 @@ cfg-buffers: | silent
 	@$(CFGMSG) "BUFFER_CPPFLAGS:" "$(BUFFER_CPPFLAGS)"
 
 %.Data.h: %.h $(BUFFER_PREPROCESSOR) $(shell $(BUFFER_PREPROCESSOR) deps $< $(CXXFLAGS) $(CPPFLAGS))
-	@$(MSG) "[GEN]" "$(MCU_TARGET)" "$*.Data.h";
+	@$(MSG) "[GEN]" "$(CPU_TARGET)" "$*.Data.h";
 	$(V)$(BUFFER_PREPROCESSOR) generate $< $@ $(CXXFLAGS) $(CPPFLAGS) > /dev/null
 
 %.Data.h: %.cpp $(BUFFER_PREPROCESSOR) $(shell $(BUFFER_PREPROCESSOR) deps $< $(CXXFLAGS) $(CPPFLAGS))
-	@$(MSG) "[GEN]" "$(MCU_TARGET)" "$*.Data.h";
+	@$(MSG) "[GEN]" "$(CPU_TARGET)" "$*.Data.h";
 	$(V)$(BUFFER_PREPROCESSOR) generate $< $@ $(CXXFLAGS) $(CPPFLAGS) > /dev/null
