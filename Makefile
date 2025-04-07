@@ -17,6 +17,9 @@ install: | silent
 test: test-python | silent
 	@
 
+simulate: | silent
+	@
+
 clean: clean-python-exec | silent
 	@
 
