@@ -68,6 +68,7 @@ ${incomplete:no_empty_line}
 #pragma once
 
 #include <cstdint>
+#include <cstddef> 
 
 ${cpp_namespaces}
 """
