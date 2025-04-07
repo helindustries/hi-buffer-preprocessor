@@ -26,12 +26,13 @@ clean: clean-python-exec | silent
 cfg: cfg-python | silent
 	@
 
+BUILD_DIR ?= $(patsubst %/,%,$(abspath $(dir $(lastword $(MAKEFILE_LIST)))/build))
+
 PYTHON_FILES := $(wildcard */*.py */*/*.py */*/*/*.py)
 PYTHON_FILES_TIMESTAMP := $(PYTHON_FILES:%.py=$(BUILD_DIR)/%.build)
 
 PYTHON_TARGET = buffer_utility
 PYTHON_EXEC_PATHS = ../..
-BUILD_DIR ?= $(patsubst %/,%,$(abspath $(shell pwd))/build)
 VERBOSE = 1
 
 include ../../../Config/BuildSystem.mk
