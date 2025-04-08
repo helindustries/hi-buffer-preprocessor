@@ -26,7 +26,7 @@ clean: clean-python-exec | silent
 cfg: cfg-python | silent
 	@
 
-BUILD_DIR ?= $(patsubst %/,%,$(abspath $(dir $(lastword $(MAKEFILE_LIST)))/build))
+BUILD_DIR ?= $(patsubst %/,%,$(abspath $(shell pwd)/build))
 
 PYTHON_FILES := $(wildcard */*.py */*/*.py */*/*/*.py)
 PYTHON_FILES_TIMESTAMP := $(PYTHON_FILES:%.py=$(BUILD_DIR)/%.build)
