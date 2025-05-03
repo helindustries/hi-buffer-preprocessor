@@ -391,7 +391,7 @@ class CompressionResult:
     window_bits: int
     length_bits: int
     size: int
-    compressed: Union[array|list[Union[int, tuple[int, int]]]]
+    compressed: Union[array, list[Union[int, tuple[int, int]]]]
     statistics: Optional[CodecStatistics] = None
     pass_count: int = 0
     def __lt__(self, other):
