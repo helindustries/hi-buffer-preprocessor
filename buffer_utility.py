@@ -16,6 +16,7 @@ from fontTools.ttLib import TTFont
 from PIL import Image
 from typing import Tuple, Any, Iterable, Optional, Callable, Union
 
+from buffer_processor.process_controller import ProcessController
 from buffer_processor.bitstream import Bitstream
 from python_utilities.cpp import filter_code, parse_compiler_args, CompilerArgs
 from python_utilities.placeholders import apply_placeholders
@@ -399,7 +400,8 @@ def compress_buffer(buffer: Buffer, compression_str: str) -> None:
                 max_length_bits = int(compression_type[3])
             elif len(compression_type) > 2:
                 raise Exception(f"Invalid LZSS compression type {compression_str}")
-            runner = CompressionRunner(LZSSCodec, buffer.source_data, max_window_bits, max_length_bits, 6)
+            max_threads = 6
+            runner = CompressionRunner(LZSSCodec, buffer.source_data, max_window_bits, max_length_bits, max_threads)
             buffer.target_data, result = runner.find_best_compression()
             print(f"Compressed {buffer.name} with window {result.window_bits} and length {result.length_bits} to {len(buffer.target_data)} bytes.")
         else:
@@ -696,6 +698,8 @@ def list_dependencies(compiler_args: CompilerArgs) -> None:
             print(args[-1])
 
 if __name__ == '__main__':
+    ProcessController.boot()
+
     import argparse
     parser = argparse.ArgumentParser(description='Buffer Compressor')
     parser.add_argument('mode', choices=['generate', 'filter', 'deps'], help='Utility mode')

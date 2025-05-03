@@ -8,9 +8,7 @@ import multiprocessing
 import sys
 
 class ProcessController:
-    def __init__(self, max_threads: int = float("inf"), set_start_method = True, use_main_process = False):
-        if set_start_method:
-            self.__class__.set_start_method(self.__class__)
+    def __init__(self, max_threads: int = float("inf"), use_main_process = False):
         self.processes: list[multiprocessing.Process] = []
         self.max_threads: int = max_threads
         self.use_main_process = True
@@ -57,10 +55,10 @@ class ProcessController:
             count += 1
         return count
     @staticmethod
-    def set_start_method(cls):
-        if not hasattr(cls, "start_method_set") or not cls.start_method_set:
-            if sys.platform == "win32":
-                multiprocessing.set_start_method("spawn")
-            else:
-                multiprocessing.set_start_method("fork")
-            cls.start_method_set = True
+    def boot():
+        multiprocessing.freeze_support()
+        if sys.platform == "win32":
+            multiprocessing.set_start_method("spawn")
+        else:
+            multiprocessing.set_start_method("fork")
+        ProcessController.start_method_set = True
