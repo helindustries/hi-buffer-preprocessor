@@ -1,10 +1,7 @@
-
 __pycache__/
-
 bin/
-
 build/
-
+dist/
 Test/
 
 .DS_Store
