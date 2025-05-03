@@ -403,7 +403,7 @@ class CompressionRunner:
     A runner for compressing buffers with different lookback and length combinations.
     """
     codec: Callable
-    controller = ProcessController()
+    controller: ProcessController
     buffer: bytes = b""
     worse_allowed: int = 0
     print_progress: bool = False
@@ -418,7 +418,7 @@ class CompressionRunner:
         """
         self.codec = codec
         self.buffer = buffer
-        self.controller = ProcessController(max_threads, True, True)
+        self.controller = ProcessController(max_threads, True)
         self.max_window_bits = sanitize_buffer_address(buffer, max_window_bits)
         self.max_length_bits = sanitize_buffer_address(buffer, max_length_bits) if max_length_bits is not None else self.max_window_bits
         self.results = self.controller.manager.list()
