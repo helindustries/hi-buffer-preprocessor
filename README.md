@@ -23,6 +23,12 @@ does not support more complex constructs.
     - RLE with configurable data width
 - Smart buffer generation with optimized line length
 
+## Setup
+
+```
+pip install pyinstaller fontTools pillow
+```
+
 ## Usage
 
 The project must define a header with the following defines:
