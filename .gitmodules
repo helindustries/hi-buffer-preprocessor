@@ -1,3 +1,6 @@
 [submodule "python_utilities"]
 	path = python_utilities
 	url = https://github.com/helindustries/hi-python-utilities.git
+[submodule "PlatformUtils"]
+	path = PlatformUtils
+	url = https://github.com/helindustries/hi-make-platform-utils.git
