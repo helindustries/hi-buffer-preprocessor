@@ -10,28 +10,33 @@
 # Since our templates also aim at C++ exclusively, more work would be required to differentiate there as
 # well though. Because we don't want to deal with having to update include paths, we are just going to
 # generate the buffer files right next to the original files. This requires us to pre-filter the files.
-BUFFER_PREPROCESSOR_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-ifeq ($(strip $(shell ls --color=never $(MAKE_INC_PATH) 2>/dev/null)),)
-    # Lets add these, so the makefile can be used standalone
+BUFFER_PREPROCESSOR_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
+#SHELL := C:/MinGW/msys/1.0/bin/bash.exe
+#$(info SH: $(SH) -> $(SHELL))
+#$(info MAKEFILE_LIST: $(MAKEFILE_LIST) -> $(lastword $(MAKEFILE_LIST)) -> $(abspath $(lastword $(MAKEFILE_LIST))) -> $(dir $(abspath $(lastword $(strip $(MAKEFILE_LIST))))))
+#$(info BUFFER_PREPROCESSOR_DIR: $(BUFFER_PREPROCESSOR_DIR) -> $(shell echo "This is empty") -> $(shell echo "This is full" | cat))
+#$(info MAKE_INC_PATH: $(MAKE_INC_PATH) -> $(call to-make-path,$(MAKE_INC_PATH)) -> $(shell ls --color=never $(MAKE_INC_PATH) 2>/dev/null))
+ifneq ($(strip $(PLATFORM_UTILS_PRESENT)),yes)
+    # If MAKE_INC_PATH is set, we are building against the makefile-based hybrid build system,
+    # otherwise we need to solve a few dependencies here so it is stand-alone.
+	include $(BUFFER_PREPROCESSOR_DIR)/PlatformUtils/PlatformUtils.mk
     CFGMSG := printf "    %-30s %s\n"
-    MSG := /usr/bin/true
+    MSG := true
     ifneq ($(strip $(PYTHON_ADDITIONAL_PATHS)),)
-        PYTHON_ENV ?= PYTHONPATH="$(PYTHON_ADDITIONAL_PATHS)"
+        PYTHON_PATH := $(call env-paths,$(call shell-list,$(BUFFER_PREPROCESSOR_DIR) $(PYTHON_ADDITIONAL_PATHS)))
+        PYTHON_ENV ?= PYTHONPATH="$(PYTHON_PATH)"
     endif
-    PYTHON = $(PYTHON_ENV) python
+    PYTHON ?= $(PYTHON_ENV) python
 endif
 
-BUFFER_PREPROCESSOR := $(BUFFER_PREPROCESSOR_DIR)/bin/buffer_utility
-ifeq ($(strip $(shell ls --color=never $(BUFFER_PREPROCESSOR) 2>/dev/null)),)
+BUFFER_PREPROCESSOR := $(BUFFER_PREPROCESSOR_DIR)/dist/$(PLATFORM_ID)/buffer_utility
+ifeq ($(call exists,$(BUFFER_PREPROCESSOR)),)
     BUFFER_PROCESSOR_PATH := $(BUFFER_PREPROCESSOR_DIR)/buffer_utility.py
-    PYTHON_ADDITIONAL_PATHS := $(BUFFER_PREPROCESSOR_DIR):$(FRAMEWORK_PATH)/Tools/PytonUtilities:$(FRAMEWORK_PATH)
-    ifneq ($(strip $(shell ls --color=never $(MAKE_INC_PATH) 2>/dev/null)),)
-        ifeq ($(strip $(filter $(MAKE_INC_PATH)/Python.mk,$(MAKEFILE_LIST))),)
-            include $(MAKE_INC_PATH)/Python.mk
-        endif
-    endif
 
-    BUFFER_PREPROCESSOR := $(PYTHON) $(BUFFER_PROCESSOR_PATH)
+    # Converting the path to shell path here, as it is the last step to the
+    # shell command and the Makefile paths don't work as input for Python
+    BUFFER_PREPROCESSOR := $(PYTHON) "$(call env-path,$(BUFFER_PROCESSOR_PATH))"
+    BUFFER_PREPROCESSOR_MODULES = $(wildcard $(BUFFER_PREPROCESSOR_DIR)/buffer_generator/*.py)
 endif
 
 CPP_BUFFER_FILES := $(shell $(BUFFER_PREPROCESSOR) filter $(CPP_FILES) $(CXXFLAGS) $(CPPFLAGS))
@@ -43,11 +48,11 @@ HEADER_BUFFER_FILES := $(HEADER_BUFFER_FILES:%.h=%.Data.h)
 HEADERS += $(HEADER_BUFFER_FILES) $(CPP_BUFFER_FILES)
 $(foreach path,$(HEADER_BUFFER_FILES) $(CPP_BUFFER_FILES),$(shell grep "// <Incomplete>" $(abspath $(path)) >/dev/null 2>&1 && rm -f $(path)))
 
-buffers: $(CPP_BUFFER_FILES) $(HEADER_BUFFER_FILES) $(BUFFER_PROCESSOR_PATH) | silent
+buffers: $(CPP_BUFFER_FILES) $(HEADER_BUFFER_FILES) $(BUFFER_PROCESSOR_PATH) $(BUFFER_PREPROCESSOR_MODULES) | silent
 	@
 
 clean-buffers: | silent
-	$(V)rm -f $(CPP_BUFFER_FILES) $(HEADER_BUFFER_FILES)
+	$(V)$(RM) $(CPP_BUFFER_FILES) $(HEADER_BUFFER_FILES)
 
 cfg-buffers: | silent
 	@$(CFGMSG) "BUFFER_PREPROCESSOR:" "$(BUFFER_PREPROCESSOR)"
@@ -56,10 +61,10 @@ cfg-buffers: | silent
 	@$(CFGMSG) "BUFFER_CXXFLAGS:" "$(BUFFER_CXXFLAGS)"
 	@$(CFGMSG) "BUFFER_CPPFLAGS:" "$(BUFFER_CPPFLAGS)"
 
-%.Data.h: %.h $(BUFFER_PREPROCESSOR) $(shell $(BUFFER_PREPROCESSOR) deps $< $(CXXFLAGS) $(CPPFLAGS))
-	@$(MSG) "[GEN]" "$(CPU_TARGET)" "$*.Data.h";
-	$(V)$(BUFFER_PREPROCESSOR) generate $< $@ $(CXXFLAGS) $(CPPFLAGS) > /dev/null
+%.Data.h: %.h $(BUFFER_PROCESSOR_PATH) $(BUFFER_PREPROCESSOR_MODULES) $(shell $(BUFFER_PREPROCESSOR) deps $< $(CXXFLAGS) $(CPPFLAGS))
+	@$(MSG) "[GEN]" "$(CPU_TARGET)" "$(call env-path,$*.Data.h)";
+	$(V)$(BUFFER_PREPROCESSOR) generate $(call env-path,$<) $(call env-path,$@) $(CXXFLAGS) $(CPPFLAGS) > /dev/null
 
-%.Data.h: %.cpp $(BUFFER_PREPROCESSOR) $(shell $(BUFFER_PREPROCESSOR) deps $< $(CXXFLAGS) $(CPPFLAGS))
-	@$(MSG) "[GEN]" "$(CPU_TARGET)" "$*.Data.h";
-	$(V)$(BUFFER_PREPROCESSOR) generate $< $@ $(CXXFLAGS) $(CPPFLAGS) > /dev/null
+%.Data.h: %.cpp $(BUFFER_PROCESSOR_PATH) $(BUFFER_PREPROCESSOR_MODULES) $(shell $(BUFFER_PREPROCESSOR) deps $< $(CXXFLAGS) $(CPPFLAGS))
+	@$(MSG) "[GEN]" "$(CPU_TARGET)" "$(call env-path,$*.Data.h)";
+	$(V)$(BUFFER_PREPROCESSOR) generate $(call env-path,$<) $(call env-path,$@) $(CXXFLAGS) $(CPPFLAGS) > /dev/null
