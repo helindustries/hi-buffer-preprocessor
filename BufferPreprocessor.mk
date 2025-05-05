@@ -17,7 +17,7 @@ BUFFER_PREPROCESSOR_DIR := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE
 #$(info BUFFER_PREPROCESSOR_DIR: $(BUFFER_PREPROCESSOR_DIR) -> $(shell echo "This is empty") -> $(shell echo "This is full" | cat))
 #$(info MAKE_INC_PATH: $(MAKE_INC_PATH) -> $(call to-make-path,$(MAKE_INC_PATH)) -> $(shell ls --color=never $(MAKE_INC_PATH) 2>/dev/null))
 ifneq ($(strip $(PLATFORM_UTILS_PRESENT)),yes)
-    # If MAKE_INC_PATH is set, we are building against the makefile-based hybrid build system,
+    # If PLATFORM_UTILS_PRESENT is set, we are building against the makefile-based hybrid build system,
     # otherwise we need to solve a few dependencies here so it is stand-alone.
 	include $(BUFFER_PREPROCESSOR_DIR)/PlatformUtils/PlatformUtils.mk
     CFGMSG := printf "    %-30s %s\n"
